@@ -33,7 +33,7 @@ CORS(app, supports_credentials=True)
 print("Loading multilingual embedding model... (this will take a few seconds the first time)")
 # multilingual model for better cross-lingual matching
 embedder = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
-print("Model loaded successfully ✅")
+print("Model loaded successfully")
 
 app.secret_key = secrets.token_hex(32)
 
@@ -124,11 +124,15 @@ def find_related_doctors(user_message, limit=3):
             available_specs.add(canon_spec)
         doc['_canonical_specialization'] = canon_spec
 
-    # If implied specialization exists but no doctors of that specialization are available, return empty
+    # If implied specialization exists but no doctors of that specialization are available,
+    # do NOT immediately return an empty list. Previously this prevented returning any
+    # recommendations for short follow-up replies (e.g. "4 days") when the earlier
+    # context implied a spec we don't have in the DB. Instead, continue and allow
+    # semantic matching to surface relevant doctors (with optional later filtering).
     if implied_specs:
-        for implied in implied_specs:
-            if implied and implied not in available_specs:
-                return []
+        missing = [implied for implied in implied_specs if implied and implied not in available_specs]
+        if missing:
+            print(f"[debug] implied specializations not available in DB: {missing} — continuing semantic matching")
 
     # Second pass: compute similarities and scores
     similarities = []
@@ -221,13 +225,10 @@ def find_related_doctors(user_message, limit=3):
 
     top_matches = [d[0] for d in filtered[:limit]]
 
-    # If the user's message strongly implies a specialization but no doctors of that
-    # canonical specialization exist, return an empty list (avoid misleading suggestions)
-    if implied_specs:
-        # if any implied spec is not available, and none of top_matches match, return []
-        for implied in implied_specs:
-            if implied and implied not in available_specs:
-                return []
+    # Previously we returned an empty list when an implied specialization had no
+    # matching doctors in the DB. That behavior caused follow-up messages with
+    # little content to produce no recommendations. Keep results (possibly empty)
+    # based on similarity filtering above; do not force an early empty return here.
 
     results = []
     for d in top_matches:
@@ -400,7 +401,18 @@ def chat():
     # Process query through workflow
     result = workflow_app.invoke(conversation_state)
     conversation_states[session_id].update(result)
-    related_doctors = find_related_doctors(message)
+
+    # Build a combined text from recent context + current message so that
+    # short replies (e.g., "4 days") are matched against earlier symptom
+    # mentions in the conversation. This improves doctor suggestion recall.
+    combined_text = (context or '').strip()
+    if combined_text and message:
+        combined_query = f"{combined_text} {message}"
+    else:
+        combined_query = message or combined_text
+
+    related_doctors = find_related_doctors(combined_query)
+    print(f"[debug] related_doctors found: {len(related_doctors)} for query='{combined_query[:120]}'")
 
     # Extract response and source
     response = result.get('generation', 'Unable to generate response.')
@@ -482,7 +494,7 @@ def new_chat():
 
 @app.route('/api/health')
 def health():
-    return jsonify({'status': 'healthy', 'service': 'MediGenius'})
+    return jsonify({'status': 'healthy', 'service': 'CareMate'})
 
 
 # ----- Admin: create or update doctor (canonicalize before write) -----

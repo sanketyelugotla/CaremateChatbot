@@ -25,6 +25,9 @@ numpy
 # Vector Database
 chromadb
 
+# Language detection
+langdetect
+
 # Optional (for production)
 python-jose
 passlib
