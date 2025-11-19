@@ -1,0 +1,16 @@
+__pycache__
+*.pyc
+.venv
+venv
+.env
+.git
+.gitignore
+.vscode
+.idea
+biogpt-merged/
+medical_db/
+notebook/
+*.ipynb
+*.log
+.DS_Store
+Thumbs.db

@@ -411,6 +411,15 @@ def initialize_system():
     persist_dir = './medical_db/'
 
     print("Initializing Caremate System...")
+    def _write_init_status(s):
+        try:
+            with open('./init_status.txt', 'w', encoding='utf-8') as f:
+                f.write(s)
+        except Exception:
+            # best-effort; do not fail initialization if status file can't be written
+            pass
+
+    _write_init_status('starting')
 
     # Initialize vector DB
     existing_db = get_or_create_vectorstore(persist_dir=persist_dir)
@@ -421,9 +430,13 @@ def initialize_system():
         get_or_create_vectorstore(documents=doc_splits, persist_dir=persist_dir)
     elif not existing_db:
         print("No vector database and no PDF found — RAG features will be limited")
+    else:
+        print("Vector DB available")
+    _write_init_status('vector_db_done')
 
     workflow_app = create_workflow()
     print("Caremate Web Interface Ready!")
+    _write_init_status('workflow_ready')
 
     # Lazily initialize MongoDB client so Docker startup doesn't fail when
     # network/DNS to Atlas isn't available. This keeps the app usable in
@@ -436,14 +449,20 @@ def initialize_system():
             sessions_collection = db["sessions"]
             messages_collection = db["messages"]
             print("MongoDB connected successfully")
+            _write_init_status('mongo_connected')
         else:
             print("MONGO_URI not set; running without DB persistence")
+            _write_init_status('mongo_not_configured')
     except Exception as e:
         print(f"Warning: MongoDB connection failed during initialize_system: {e}")
         client = None
         db = None
         sessions_collection = None
         messages_collection = None
+        _write_init_status('mongo_failed')
+
+    # Final ready
+    _write_init_status('ready')
 
 
 # --------------------------------------
