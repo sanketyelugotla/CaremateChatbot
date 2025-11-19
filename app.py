@@ -336,7 +336,7 @@ def find_related_doctors(user_message, limit=3):
 
 def save_message(session_id, role, content, source=None):
     """Save user or assistant message to MongoDB"""
-    if not messages_collection or not sessions_collection:
+    if messages_collection is None or sessions_collection is None:
         # No DB configured; skip persistence
         return
     messages_collection.insert_one({
@@ -359,7 +359,7 @@ def save_message(session_id, role, content, source=None):
 
 def get_chat_history(session_id):
     """Retrieve ordered chat messages for a session"""
-    if not messages_collection:
+    if messages_collection is None:
         return []
     messages = list(messages_collection.find(
         {"session_id": session_id},
@@ -370,7 +370,7 @@ def get_chat_history(session_id):
 
 def get_all_sessions():
     """Fetch all sessions with preview"""
-    if not sessions_collection or not messages_collection:
+    if sessions_collection is None or messages_collection is None:
         return []
     sessions = []
     for s in sessions_collection.find().sort("last_active", -1):
@@ -394,7 +394,7 @@ def get_all_sessions():
 
 def delete_session(session_id):
     """Delete all messages + session document"""
-    if not messages_collection or not sessions_collection:
+    if messages_collection is None or sessions_collection is None:
         return
     messages_collection.delete_many({"session_id": session_id})
     sessions_collection.delete_one({"session_id": session_id})
@@ -692,11 +692,11 @@ def upsert_doctor():
 # --------------------------------------
 if __name__ == '__main__':
     initialize_system()
-    # Bind to all interfaces so remote port-forwarding / tunnels can reach the server.
-    # Use `PORT` from the environment (Render sets this) or fall back to 8000.
+
     try:
         port = int(os.getenv('PORT', '8000'))
     except Exception:
         port = 8000
+
     print(f"Starting Caremate on 0.0.0.0:{port}")
-    app.run(host='0.0.0.0', debug=True, port=port)
+    app.run(host='0.0.0.0', port=port) 
