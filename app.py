@@ -693,4 +693,10 @@ def upsert_doctor():
 if __name__ == '__main__':
     initialize_system()
     # Bind to all interfaces so remote port-forwarding / tunnels can reach the server.
-    app.run(host='0.0.0.0', debug=True, port=8000)
+    # Use `PORT` from the environment (Render sets this) or fall back to 8000.
+    try:
+        port = int(os.getenv('PORT', '8000'))
+    except Exception:
+        port = 8000
+    print(f"Starting Caremate on 0.0.0.0:{port}")
+    app.run(host='0.0.0.0', debug=True, port=port)

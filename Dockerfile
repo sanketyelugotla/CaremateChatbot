@@ -10,7 +10,8 @@ COPY . /app
 # Install the dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port Flask runs on (app.py binds to 8000)
+# Expose and set the default port (Render will override PORT env variable)
+ENV PORT=8000
 EXPOSE 8000
 
 # Command to run the Flask app
