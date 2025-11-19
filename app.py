@@ -6,8 +6,6 @@ from datetime import datetime, timezone
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
-from flask_cors import CORS
-
 from core.langgraph_workflow import create_workflow
 from core.state import initialize_conversation_state, reset_query_state
 from tools.pdf_loader import process_pdf
@@ -30,16 +28,9 @@ app = Flask(__name__)
 
 
 # Allow all origins (development). For production, restrict this to a safe list.
-# FRONTEND_URL = "https://sanketyelugotla-caremate.vercel.app"
-FRONTEND_URL = "http://localhost:3000"
-
-CORS(
-    app,
-    supports_credentials=True,
-    resources={
-        r"/*": {"origins": [FRONTEND_URL, "http://localhost:3000"]}
-    }
-)
+# FRONTEND_URL can be configured via environment for different deployments
+# Example: export FRONTEND_URL=https://sanketyelugotla-caremate.vercel.app
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
 
 @app.after_request
 def add_cors_headers(response):
@@ -62,10 +53,10 @@ app.secret_key = secrets.token_hex(32)
 # MongoDB setup
 # --------------------------------------
 MONGO_URI = os.getenv("MONGO_URI")
-client = MongoClient(MONGO_URI)
-db = client["caremate"]
-sessions_collection = db["sessions"]
-messages_collection = db["messages"]
+client = None
+db = None
+sessions_collection = None
+messages_collection = None
 
 # --------------------------------------
 # Global workflow and conversation state
@@ -345,6 +336,9 @@ def find_related_doctors(user_message, limit=3):
 
 def save_message(session_id, role, content, source=None):
     """Save user or assistant message to MongoDB"""
+    if not messages_collection or not sessions_collection:
+        # No DB configured; skip persistence
+        return
     messages_collection.insert_one({
         "session_id": session_id,
         "role": role,
@@ -365,6 +359,8 @@ def save_message(session_id, role, content, source=None):
 
 def get_chat_history(session_id):
     """Retrieve ordered chat messages for a session"""
+    if not messages_collection:
+        return []
     messages = list(messages_collection.find(
         {"session_id": session_id},
         {"_id": 0}
@@ -374,6 +370,8 @@ def get_chat_history(session_id):
 
 def get_all_sessions():
     """Fetch all sessions with preview"""
+    if not sessions_collection or not messages_collection:
+        return []
     sessions = []
     for s in sessions_collection.find().sort("last_active", -1):
         first_user_msg = messages_collection.find_one(
@@ -396,6 +394,8 @@ def get_all_sessions():
 
 def delete_session(session_id):
     """Delete all messages + session document"""
+    if not messages_collection or not sessions_collection:
+        return
     messages_collection.delete_many({"session_id": session_id})
     sessions_collection.delete_one({"session_id": session_id})
 
@@ -405,6 +405,7 @@ def delete_session(session_id):
 # --------------------------------------
 def initialize_system():
     global workflow_app
+    global client, db, sessions_collection, messages_collection
 
     pdf_path = './data/medical_book.pdf'
     persist_dir = './medical_db/'
@@ -423,6 +424,26 @@ def initialize_system():
 
     workflow_app = create_workflow()
     print("Caremate Web Interface Ready!")
+
+    # Lazily initialize MongoDB client so Docker startup doesn't fail when
+    # network/DNS to Atlas isn't available. This keeps the app usable in
+    # limited functionality mode (no persistence).
+    try:
+        if MONGO_URI:
+            client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+            client.admin.command('ping')
+            db = client["caremate"]
+            sessions_collection = db["sessions"]
+            messages_collection = db["messages"]
+            print("MongoDB connected successfully")
+        else:
+            print("MONGO_URI not set; running without DB persistence")
+    except Exception as e:
+        print(f"Warning: MongoDB connection failed during initialize_system: {e}")
+        client = None
+        db = None
+        sessions_collection = None
+        messages_collection = None
 
 
 # --------------------------------------

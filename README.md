@@ -324,12 +324,12 @@ Response:
 
 ## 👨‍💻 **Developed By**
 
-**Md Emon Hasan**  
-📧 **Email:** iconicemon01@gmail.com  
-💬 **WhatsApp:** [+8801834363533](https://wa.me/8801834363533)  
-🔗 **GitHub:** [Md-Emon-Hasan](https://github.com/Md-Emon-Hasan)  
-🔗 **LinkedIn:** [Md Emon Hasan](https://www.linkedin.com/in/md-emon-hasan-695483237/)  
-🔗 **Facebook:** [Md Emon Hasan](https://www.facebook.com/mdemon.hasan2001/)
+**Sanket Yelugotla**  
+📧 **Email:** <sanketyelugotla123@gmail.com>  
+💬 **WhatsApp:** [+919550572255](https://wa.me/9550572255)  
+🔗 **GitHub:** [Sanket-yelugotla](https://github.com/sanketyelugotla)  
+🔗 **LinkedIn:** [Sanket Yelugotla](https://www.linkedin.com/in/sanketyelugotla/)  
+🔗 **Facebook:** [Sanket Yelugotla](https://www.facebook.com/sanketyelugotla/)
 
 ---
 
