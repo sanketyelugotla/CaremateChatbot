@@ -30,7 +30,8 @@ app = Flask(__name__)
 
 
 # Allow all origins (development). For production, restrict this to a safe list.
-FRONTEND_URL = "https://sanketyelugotla-caremate.vercel.app"
+# FRONTEND_URL = "https://sanketyelugotla-caremate.vercel.app"
+FRONTEND_URL = "http://localhost:3000"
 
 CORS(
     app,
@@ -97,16 +98,80 @@ def find_related_doctors(user_message, limit=3):
     # Preprocess message for simple keyword matching
     user_text_lc = (user_message or "").lower()
 
-    # Symptom -> specialization keywords mapping (tune as needed)
+    # Comprehensive Symptom -> specialization keywords mapping. This list is
+    # intentionally broad and should be tuned to your region and dataset.
     SPECIALIZATION_KEYWORDS = {
-        "cardiologist": ["chest pain", "shortness of breath", "palpitat", "heart attack", "angina", "tachycardia"],
-        "pulmonologist": ["cough", "shortness of breath", "wheeze", "wheezing", "bronchitis", "asthma"],
-        "dermatologist": ["rash", "itch", "itching", "redness", "eczema", "psoriasis", "skin"],
-        "ent": ["ear", "hearing", "hearing loss", "ear pain", "tinnitus", "hoarseness"],
-        "neurology": ["headache", "seizure", "numbness", "weakness", "dizziness", "migraine"],
-        "pediatrician": ["child", "kid", "baby", "fever in child", "pediatric"],
-        "orthopedist": ["joint pain", "back pain", "fracture", "sprain", "arthritis"],
+        "cardiologist": [
+            "chest pain", "shortness of breath", "palpitations", "heart attack", "angina", "tachycardia",
+            "high blood pressure", "hypertension", "palpitat"
+        ],
+        "pulmonologist": [
+            "cough", "shortness of breath", "wheeze", "wheezing", "bronchitis", "asthma", "tb", "tuberculosis",
+            "chronic obstructive", "copd", "pneumonia"
+        ],
+        "dermatologist": [
+            "rash", "itch", "itching", "redness", "eczema", "psoriasis", "skin", "acne", "blister", "hives"
+        ],
+        "ent": [
+            "ear", "hearing", "hearing loss", "ear pain", "tinnitus", "hoarseness", "sinus", "nasal", "throat",
+            "tonsillitis", "sinusitis"
+        ],
+        "neurologist": [
+            "headache", "seizure", "fits", "numbness", "weakness", "dizziness", "migraine", "stroke", "tremor"
+        ],
+        "pediatrician": [
+            "child", "kid", "baby", "fever in child", "pediatric", "infant", "newborn", "vaccination", "growth"
+        ],
+        "orthopedist": [
+            "joint pain", "back pain", "fracture", "sprain", "arthritis", "bone", "hip pain", "knee pain", "shoulder"
+        ],
+        "gastroenterologist": [
+            "abdominal pain", "diarrhea", "constipation", "vomiting", "nausea", "acid reflux", "heartburn", "ulcer"
+        ],
+        "endocrinologist": [
+            "diabetes", "thyroid", "weight gain", "weight loss", "hormone", "hypothyroid", "hyperthyroid"
+        ],
+        "psychiatrist": [
+            "depression", "anxiety", "insomnia", "mood", "psychosis", "therapy", "suicidal"
+        ],
+        "ophthalmologist": [
+            "eye", "vision", "blurry vision", "red eye", "cataract", "glaucoma", "ocular"
+        ],
+        "urologist": [
+            "urine", "urinary", "blood in urine", "dysuria", "kidney stone", "prostate", "frequency", "incontinence"
+        ],
+        "nephrologist": [
+            "kidney", "renal", "creatinine", "dialysis", "nephrotic", "proteinuria"
+        ],
+        "obgyn": [
+            "pregnancy", "period", "menstruation", "vaginal", "pelvic pain", "contraception", "gynecology", "obstetrics"
+        ],
+        "oncologist": [
+            "cancer", "chemotherapy", "tumor", "malignancy", "oncology", "mass"
+        ],
+        "infectious_disease": [
+            "fever", "infection", "sepsis", "antibiotic", "hiv", "tb", "covid", "viral"
+        ],
+        "rheumatologist": [
+            "joint pain", "autoimmune", "rheumatoid", "lupus", "scleroderma", "vasculitis"
+        ],
+        "allergist": [
+            "allergy", "allergic", "anaphylaxis", "hay fever", "rhinitis"
+        ],
+        "physiotherapist": [
+            "rehab", "physiotherapy", "mobility", "exercise therapy", "post-op rehab"
+        ],
+        "dentist": [
+            "toothache", "dental", "cavity", "gum", "oral", "tooth"
+        ],
+        "derm_cosmetic": [
+            "laser", "cosmetic", "fillers", "botox", "aesthetic"
+        ],
     }
+
+    # Helper to return a list of canonical specializations for admin use
+    def get_specialization_list():
+        return sorted([(k.replace('_', ' ').title(), k) for k in SPECIALIZATION_KEYWORDS.keys()], key=lambda x: x[0])
 
     # Canonicalization map for specialization names (common typos / variants)
     CANONICAL_SPECIALIZATIONS = {
@@ -336,7 +401,7 @@ def delete_session(session_id):
 
 
 # --------------------------------------
-# MediGenius Initialization
+# Caremate Initialization
 # --------------------------------------
 def initialize_system():
     global workflow_app
@@ -344,7 +409,7 @@ def initialize_system():
     pdf_path = './data/medical_book.pdf'
     persist_dir = './medical_db/'
 
-    print("Initializing MediGenius System...")
+    print("Initializing Caremate System...")
 
     # Initialize vector DB
     existing_db = get_or_create_vectorstore(persist_dir=persist_dir)
@@ -357,7 +422,7 @@ def initialize_system():
         print("No vector database and no PDF found — RAG features will be limited")
 
     workflow_app = create_workflow()
-    print("MediGenius Web Interface Ready!")
+    print("Caremate Web Interface Ready!")
 
 
 # --------------------------------------

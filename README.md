@@ -1,6 +1,6 @@
-# 🩺 **MediGenius: AI-Powered Multi-Agent Medical Assistant**
+# 🩺 **Caremate: AI-Powered Multi-Agent Medical Assistant**
 
-**MediGenius** is a **production-ready, multi-agent medical AI system** built with **LangGraph orchestration**, achieving **90%+ factual accuracy**, **82% medical alignment**, and **<7.3s average response time**, surpassing baseline LLM models in both reliability and speed.
+**Caremate** is a **production-ready, multi-agent medical AI system** built with **LangGraph orchestration**, achieving **90%+ factual accuracy**, **82% medical alignment**, and **<7.3s average response time**, surpassing baseline LLM models in both reliability and speed.
 
 The system employs **Planner, Retriever, Answer Generator, Tool Router**, and **Fallback Handler Agents** that coordinate intelligently across diverse tools — combining, **medical RAG from verified PDFs**, and **fallback web searches** to ensure accuracy even when the LLM falters.
 
@@ -19,16 +19,16 @@ You can interact with the live AI-powered medical assistant here:
 
 ## 📊 **Performance Evaluation & Benchmarking**
 
-| **Metrics**               | **MediGenius (Your Model)** | **LLaMA 3.1 70B**                                                                                                                                |
-| ------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Success Rate**          | **80–94 %**                 | **79–90 %** ([PLOS ONE](https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0325803))                                            |
-| **Average Response Time** | **7.23 seconds**            | **22.8 seconds** ([PMC Study](https://pmc.ncbi.nlm.nih.gov/articles/PMC12161878/))                                                               |
-| **Average Word Count**    | **76 words**                | **≈ 76 words** ([PMC Study](https://pmc.ncbi.nlm.nih.gov/articles/PMC12161878/))                                                                 |
-| **Medical Terms Usage**   | **80.0 %**                  | **80.0 %** ([Reddit Community Analysis](https://www.reddit.com/r/LocalLLaMA/comments/1fps1cp/llama32_vs_llama31_in_medical_domain_llama31_70b/)) |
-| **Disclaimer Rate**       | **0.0 %**                   | **0.0 %** (same source)                                                                                                                          |
-| **Completeness Rate**     | **100 %**                   | **100 %** (same source)                                                                                                                          |
-| **Source Attribution**    | **100 %**                   | **100 %** (same source)                                                                                                                          |
-| **Overall Quality Score** | **85 %**                    | **84 %** ([Reddit Community Analysis](https://www.reddit.com/r/LocalLLaMA/comments/1fps1cp/llama32_vs_llama31_in_medical_domain_llama31_70b/))   |
+| **Metrics**               | **Caremate (Your Model)** | **LLaMA 3.1 70B**                                                                                                                                |
+| ------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Success Rate**          | **80–94 %**               | **79–90 %** ([PLOS ONE](https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0325803))                                            |
+| **Average Response Time** | **7.23 seconds**          | **22.8 seconds** ([PMC Study](https://pmc.ncbi.nlm.nih.gov/articles/PMC12161878/))                                                               |
+| **Average Word Count**    | **76 words**              | **≈ 76 words** ([PMC Study](https://pmc.ncbi.nlm.nih.gov/articles/PMC12161878/))                                                                 |
+| **Medical Terms Usage**   | **80.0 %**                | **80.0 %** ([Reddit Community Analysis](https://www.reddit.com/r/LocalLLaMA/comments/1fps1cp/llama32_vs_llama31_in_medical_domain_llama31_70b/)) |
+| **Disclaimer Rate**       | **0.0 %**                 | **0.0 %** (same source)                                                                                                                          |
+| **Completeness Rate**     | **100 %**                 | **100 %** (same source)                                                                                                                          |
+| **Source Attribution**    | **100 %**                 | **100 %** (same source)                                                                                                                          |
+| **Overall Quality Score** | **85 %**                  | **84 %** ([Reddit Community Analysis](https://www.reddit.com/r/LocalLLaMA/comments/1fps1cp/llama32_vs_llama31_in_medical_domain_llama31_70b/))   |
 
 ---
 
@@ -98,7 +98,7 @@ You can interact with the live AI-powered medical assistant here:
 ## 🗂️ **Folder Structure**
 
 ```
-MediGenius/
+Caremate/
 ├── .github/
 │   └── workflows/
 │       └── main.yml
@@ -128,7 +128,7 @@ MediGenius/
 │   └── chroma.sqlite3
 │
 ├──── chat_db/
-│   └── medigenius_chats.db
+│   └── Caremate_chats.db
 │
 ├── notebook/
 │   ├── Experiments.ipynb

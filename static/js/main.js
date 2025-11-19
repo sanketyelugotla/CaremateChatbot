@@ -37,7 +37,7 @@ function initializeApp() {
         document.documentElement.setAttribute('data-theme', 'dark');
         themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
     }
-    
+
     if (sidebarOpen) {
         sidebar.classList.remove('collapsed');
         mainContent.classList.add('sidebar-open');
@@ -45,7 +45,7 @@ function initializeApp() {
         sidebar.classList.add('collapsed');
         mainContent.classList.remove('sidebar-open');
     }
-    
+
     messageInput.addEventListener('input', () => {
         messageInput.style.height = 'auto';
         messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
@@ -62,7 +62,7 @@ function initializeEventListeners() {
             sendMessage();
         }
     });
-    
+
     document.querySelectorAll('.quick-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             const question = btn.dataset.question;
@@ -71,7 +71,7 @@ function initializeEventListeners() {
             setTimeout(() => sendMessage(), 200);
         });
     });
-    
+
     sidebarToggleBtn.addEventListener('click', toggleSidebar);
     newChatBtn.addEventListener('click', createNewChat);
     clearBtn.addEventListener('click', clearChat);
@@ -92,7 +92,7 @@ async function loadChatSessions() {
     try {
         const response = await fetch('/api/sessions');
         const data = await response.json();
-        
+
         if (data.success && data.sessions) {
             displayChatSessions(data.sessions);
         }
@@ -114,10 +114,10 @@ function displayChatSessions(sessions) {
         const chatItem = document.createElement('div');
         chatItem.className = 'chat-item';
         chatItem.dataset.sessionId = session.session_id;
-        
+
         const preview = session.preview || 'New conversation';
         const timeAgo = formatTimeAgo(session.last_active);
-        
+
         chatItem.innerHTML = `
             <i class="fas fa-message"></i>
             <div class="chat-item-content">
@@ -128,13 +128,13 @@ function displayChatSessions(sessions) {
                 <i class="fas fa-trash"></i>
             </button>
         `;
-        
+
         chatItem.addEventListener('click', (e) => {
             if (!e.target.closest('.chat-item-delete')) {
                 loadSession(session.session_id);
             }
         });
-        
+
         chatList.appendChild(chatItem);
     });
 }
@@ -147,7 +147,7 @@ function formatTimeAgo(timestamp) {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-    
+
     if (diffMins < 1) return 'Just now';
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
@@ -160,23 +160,23 @@ async function loadSession(sessionId) {
     try {
         const response = await fetch(`/api/session/${sessionId}`);
         const data = await response.json();
-        
+
         if (data.success) {
             currentSessionId = sessionId;
             messagesContainer.innerHTML = '';
             welcomeScreen.classList.add('hidden');
-            
+
             data.messages.forEach(msg => {
                 addMessage(msg.content, msg.role, msg.timestamp, msg.source, false);
             });
-            
+
             document.querySelectorAll('.chat-item').forEach(item => {
                 item.classList.remove('active');
                 if (item.dataset.sessionId === sessionId) {
                     item.classList.add('active');
                 }
             });
-            
+
             showToast('Chat loaded successfully', 'success');
         }
     } catch (error) {
@@ -190,7 +190,7 @@ async function loadCurrentChatHistory() {
     try {
         const response = await fetch('/api/history');
         const data = await response.json();
-        
+
         if (data.success && data.messages && data.messages.length > 0) {
             welcomeScreen.classList.add('hidden');
             data.messages.forEach(msg => {
@@ -205,21 +205,21 @@ async function loadCurrentChatHistory() {
 // Delete Session
 async function deleteSession(sessionId, event) {
     event.stopPropagation();
-    
+
     if (!confirm('Are you sure you want to delete this chat?')) return;
-    
+
     try {
         const response = await fetch(`/api/session/${sessionId}`, {
             method: 'DELETE'
         });
-        
+
         if (response.ok) {
             loadChatSessions();
-            
+
             if (currentSessionId === sessionId) {
                 createNewChat();
             }
-            
+
             showToast('Chat deleted successfully', 'success');
         }
     } catch (error) {
@@ -232,19 +232,19 @@ async function deleteSession(sessionId, event) {
 async function sendMessage() {
     const message = messageInput.value.trim();
     if (!message || isTyping) return;
-    
+
     if (!welcomeScreen.classList.contains('hidden')) {
         welcomeScreen.classList.add('hidden');
     }
-    
+
     addMessage(message, 'user');
-    
+
     messageInput.value = '';
     messageInput.style.height = 'auto';
     sendBtn.disabled = true;
-    
+
     showTyping();
-    
+
     try {
         const response = await fetch('/api/chat', {
             method: 'POST',
@@ -253,9 +253,9 @@ async function sendMessage() {
             },
             body: JSON.stringify({ message })
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
             addMessage(data.response, 'assistant', data.timestamp, data.source);
             showToast('Response received', 'success');
@@ -278,9 +278,9 @@ function addMessage(content, type, timestamp = null, source = null, animate = tr
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}-message`;
     if (animate) messageDiv.style.opacity = '0';
-    
-    const time = timestamp || new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-    
+
+    const time = timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
     if (type === 'user') {
         messageDiv.innerHTML = `
             <div class="message-wrapper">
@@ -314,7 +314,7 @@ function addMessage(content, type, timestamp = null, source = null, animate = tr
                 </div>
             `;
         }
-        
+
         messageDiv.innerHTML = `
             <div class="message-wrapper">
                 <div class="message-avatar">
@@ -328,16 +328,16 @@ function addMessage(content, type, timestamp = null, source = null, animate = tr
             </div>
         `;
     }
-    
+
     messagesContainer.appendChild(messageDiv);
-    
+
     if (animate) {
         setTimeout(() => {
             messageDiv.style.transition = 'opacity 0.4s ease';
             messageDiv.style.opacity = '1';
         }, 100);
     }
-    
+
     smoothScrollToBottom();
     chatHistory.push({ content, type, timestamp: time, source });
 }
@@ -376,7 +376,7 @@ function toggleTheme() {
     currentTheme = currentTheme === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', currentTheme);
     localStorage.setItem('theme', currentTheme);
-    
+
     themeBtn.innerHTML = currentTheme === 'light' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
     showToast(`${currentTheme === 'dark' ? 'Dark' : 'Light'} mode activated`, 'success');
 }
@@ -387,17 +387,17 @@ async function createNewChat() {
         const response = await fetch('/api/new-chat', {
             method: 'POST'
         });
-        
+
         if (response.ok) {
             messagesContainer.innerHTML = '';
             welcomeScreen.classList.remove('hidden');
             chatHistory = [];
             currentSessionId = null;
-            
+
             document.querySelectorAll('.chat-item').forEach(item => {
                 item.classList.remove('active');
             });
-            
+
             loadChatSessions();
             showToast('New chat created', 'success');
         }
@@ -410,12 +410,12 @@ async function createNewChat() {
 // Clear Chat
 async function clearChat() {
     if (!confirm('Are you sure you want to clear this conversation?')) return;
-    
+
     try {
         const response = await fetch('/api/clear', {
             method: 'POST'
         });
-        
+
         if (response.ok) {
             messagesContainer.innerHTML = '';
             welcomeScreen.classList.remove('hidden');
@@ -434,27 +434,27 @@ function downloadChat() {
         showToast('No messages to download', 'error');
         return;
     }
-    
-    let content = 'MediGenius Chat Export\n';
+
+    let content = 'Caremate Chat Export\n';
     content += '='.repeat(50) + '\n\n';
-    
+
     chatHistory.forEach((msg) => {
-        content += `[${msg.timestamp}] ${msg.type === 'user' ? 'You' : 'MediGenius'}:\n`;
+        content += `[${msg.timestamp}] ${msg.type === 'user' ? 'You' : 'Caremate'}:\n`;
         content += msg.content + '\n';
         if (msg.source) {
             content += `Source: ${msg.source}\n`;
         }
         content += '\n';
     });
-    
+
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `medigenius-chat-${Date.now()}.txt`;
+    a.download = `Caremate-chat-${Date.now()}.txt`;
     a.click();
     URL.revokeObjectURL(url);
-    
+
     showToast('Chat downloaded successfully', 'success');
 }
 
@@ -465,18 +465,18 @@ function showToast(message, type = 'success') {
         'error': 'fa-exclamation-circle',
         'info': 'fa-info-circle'
     };
-    
+
     const colors = {
         'success': 'linear-gradient(135deg, #10b981, #059669)',
         'error': 'linear-gradient(135deg, #ef4444, #dc2626)',
         'info': 'linear-gradient(135deg, #3b82f6, #2563eb)'
     };
-    
+
     toast.style.background = colors[type];
     toast.innerHTML = `<i class="fas ${icons[type]}"></i><span>${message}</span>`;
-    
+
     toast.classList.add('show');
-    
+
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);
