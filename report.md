@@ -1,6 +1,6 @@
-### 🧠 **Model Evaluation Comparison: MediGenius vs. LLaMA 3.1 70B**
+### 🧠 **Model Evaluation Comparison: CareMate vs. LLaMA 3.1 70B**
 
-| **Metrics**               | **Your MediGenius Model** | **LLaMA 3.1 70B**                                                                                                                               |
+| **Metrics**               | **Your CareMate Model** | **LLaMA 3.1 70B**                                                                                                                               |
 | ------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Success Rate**          | **80–94%**                | **79–90%** ([PLOS ONE](https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0325803))                                            |
 | **Average Response Time** | **7.23 seconds**          | **22.8 seconds** ([PMC Study](https://pmc.ncbi.nlm.nih.gov/articles/PMC12161878/))                                                              |
@@ -15,4 +15,4 @@
 
 ### 🔍 **Summary**
 
-The **MediGenius AI System**, powered by **OpenAI GPT-OSS-120B** and optimized through advanced **prompt engineering**, **RAG integration**, and **domain-specific tuning**, demonstrates superior efficiency and diagnostic reasoning compared to **LLaMA 3.1 70B**—achieving **up to 3× faster response times** and **higher quality consistency (85% vs. 84%)** in medical reasoning and patient-assistant interaction tasks.
+The **CareMate AI System**, powered by **OpenAI GPT-OSS-120B** and optimized through advanced **prompt engineering**, **RAG integration**, and **domain-specific tuning**, demonstrates superior efficiency and diagnostic reasoning compared to **LLaMA 3.1 70B**—achieving **up to 3× faster response times** and **higher quality consistency (85% vs. 84%)** in medical reasoning and patient-assistant interaction tasks.

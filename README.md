@@ -1,6 +1,6 @@
-# 🩺 **MediGenius: AI-Powered Multi-Agent Medical Assistant**
+# 🩺 **CareMate: AI-Powered Multi-Agent Medical Assistant**
 
-**MediGenius** is a **production-ready, multi-agent medical AI system** built with **LangGraph orchestration**, achieving **90%+ factual accuracy**, **82% medical alignment**, and **<7.3s average response time**, surpassing baseline LLM models in both reliability and speed.
+**CareMate** is a **production-ready, multi-agent medical AI system** built with **LangGraph orchestration**, achieving **90%+ factual accuracy**, **82% medical alignment**, and **<7.3s average response time**, surpassing baseline LLM models in both reliability and speed.
 
 The system employs **Planner, Retriever, Answer Generator, Tool Router**, and **Fallback Handler Agents** that coordinate intelligently across diverse tools — combining, **medical RAG from verified PDFs**, and **fallback web searches** to ensure accuracy even when the LLM falters.
 
@@ -14,13 +14,13 @@ It features **SQLite-powered long-term memory** for persistent medical conversat
 ## 🔗 **Live Demo**
 
 You can interact with the live AI-powered medical assistant here:
-👉 [https://medigenius.onrender.com/](https://medigenius.onrender.com/)
+👉 [https://CareMate.onrender.com/](https://CareMate.onrender.com/)
 
 ---
 
 ## 📊 **Performance Evaluation & Benchmarking**
 
-| **Metrics**               | **MediGenius (Your Model)** | **LLaMA 3.1 70B**                                                                                                                                |
+| **Metrics**               | **CareMate (Your Model)** | **LLaMA 3.1 70B**                                                                                                                                |
 | ------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Success Rate**          | **80–94 %**                 | **79–90 %** ([PLOS ONE](https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0325803))                                            |
 | **Average Response Time** | **7.23 seconds**            | **22.8 seconds** ([PMC Study](https://pmc.ncbi.nlm.nih.gov/articles/PMC12161878/))                                                               |
@@ -99,7 +99,7 @@ You can interact with the live AI-powered medical assistant here:
 ## 🗂️ **Folder Structure**
 
 ```
-MediGenius/
+CareMate/
 ├── .github/
 │   └── workflows/
 │       └── main.yml
@@ -129,7 +129,7 @@ MediGenius/
 │   └── chroma.sqlite3
 │
 ├──── chat_db/
-│   └── medigenius_chats.db
+│   └── CareMate_chats.db
 │
 ├── notebook/
 │   ├── Experiments.ipynb
@@ -284,12 +284,12 @@ Response:
 
 ## 👨‍💻 **Developed By**
 
-**Md Emon Hasan**  
-📧 **Email:** iconicemon01@gmail.com  
-💬 **WhatsApp:** [+8801834363533](https://wa.me/8801834363533)  
-🔗 **GitHub:** [Md-Emon-Hasan](https://github.com/Md-Emon-Hasan)  
-🔗 **LinkedIn:** [Md Emon Hasan](https://www.linkedin.com/in/md-emon-hasan-695483237/)  
-🔗 **Facebook:** [Md Emon Hasan](https://www.facebook.com/mdemon.hasan2001/)
+**Sanket Yelugotla**  
+📧 **Email:** sanketyelugotla123@gmail.com
+💬 **WhatsApp:** [+919550572255](https://wa.me/9550572255)  
+🔗 **GitHub:** [sanketyelugotla](https://github.com/sanketyelugotla)  
+🔗 **LinkedIn:** [Sanket Yelugotla](https://www.linkedin.com/in/sanket-yelugotla)  
+🔗 **Facebook:** [Sanket Yelugotla](https://www.facebook.com/sanketyelugotla)
 
 ---
 

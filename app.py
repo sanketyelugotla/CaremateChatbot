@@ -175,7 +175,7 @@ def delete_session(session_id):
 
 
 # --------------------------------------
-# MediGenius Initialization
+# CareMate Initialization
 # --------------------------------------
 def initialize_system():
     global workflow_app
@@ -183,7 +183,7 @@ def initialize_system():
     pdf_path = './data/medical_book.pdf'
     persist_dir = './medical_db/'
 
-    print("Initializing MediGenius System...")
+    print("Initializing CareMate System...")
 
     # Initialize vector DB
     existing_db = get_or_create_vectorstore(persist_dir=persist_dir)
@@ -196,7 +196,7 @@ def initialize_system():
         print("No vector database and no PDF found — RAG features will be limited")
 
     workflow_app = create_workflow()
-    print("MediGenius Web Interface Ready!")
+    print("CareMate Web Interface Ready!")
 
 
 # --------------------------------------
@@ -337,7 +337,7 @@ def new_chat():
 
 @app.route('/api/health')
 def health():
-    return jsonify({'status': 'healthy', 'service': 'MediGenius'})
+    return jsonify({'status': 'healthy', 'service': 'CareMate'})
 
 
 # --------------------------------------
