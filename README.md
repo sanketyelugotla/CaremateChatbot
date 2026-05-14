@@ -285,7 +285,7 @@ Response:
 ## 👨‍💻 **Developed By**
 
 **Sanket Yelugotla**  
-📧 **Email:** [EMAIL_ADDRESS] 
+📧 **Email:** sanketyelugotla123@gmail.com  
 💬 **WhatsApp:** [+919550572255](https://wa.me/9550572255)  
 🔗 **GitHub:** [sanketyelugotla](https://github.com/sanketyelugotla)  
 🔗 **LinkedIn:** [Sanket Yelugotla](https://www.linkedin.com/in/sanket-yelugotla)  
