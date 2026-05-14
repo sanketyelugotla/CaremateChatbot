@@ -1,10 +1,11 @@
-# 🩺 **Caremate: AI-Powered Multi-Agent Medical Assistant**
+# 🩺 **MediGenius: AI-Powered Multi-Agent Medical Assistant**
 
-**Caremate** is a **production-ready, multi-agent medical AI system** built with **LangGraph orchestration**, achieving **90%+ factual accuracy**, **82% medical alignment**, and **<7.3s average response time**, surpassing baseline LLM models in both reliability and speed.
+**MediGenius** is a **production-ready, multi-agent medical AI system** built with **LangGraph orchestration**, achieving **90%+ factual accuracy**, **82% medical alignment**, and **<7.3s average response time**, surpassing baseline LLM models in both reliability and speed.
 
 The system employs **Planner, Retriever, Answer Generator, Tool Router**, and **Fallback Handler Agents** that coordinate intelligently across diverse tools — combining, **medical RAG from verified PDFs**, and **fallback web searches** to ensure accuracy even when the LLM falters.
 
 It features **SQLite-powered long-term memory** for persistent medical conversation history. The full-stack implementation includes a **Flask + frontend** with smooth user interaction, **Dockerized deployment** for scalability, and an integrated **CI/CD pipeline** ensuring continuous updates, reliability and capable of context-aware, factual, and empathetic medical consultations.
+
 
 [![Medical AI Assistant Demo](https://github.com/user-attachments/assets/73828ab1-67aa-42d4-828f-6b2e1c72e429)](https://github.com/user-attachments/assets/73828ab1-67aa-42d4-828f-6b2e1c72e429)
 
@@ -19,16 +20,16 @@ You can interact with the live AI-powered medical assistant here:
 
 ## 📊 **Performance Evaluation & Benchmarking**
 
-| **Metrics**               | **Caremate (Your Model)** | **LLaMA 3.1 70B**                                                                                                                                |
-| ------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Success Rate**          | **80–94 %**               | **79–90 %** ([PLOS ONE](https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0325803))                                            |
-| **Average Response Time** | **7.23 seconds**          | **22.8 seconds** ([PMC Study](https://pmc.ncbi.nlm.nih.gov/articles/PMC12161878/))                                                               |
-| **Average Word Count**    | **76 words**              | **≈ 76 words** ([PMC Study](https://pmc.ncbi.nlm.nih.gov/articles/PMC12161878/))                                                                 |
-| **Medical Terms Usage**   | **80.0 %**                | **80.0 %** ([Reddit Community Analysis](https://www.reddit.com/r/LocalLLaMA/comments/1fps1cp/llama32_vs_llama31_in_medical_domain_llama31_70b/)) |
-| **Disclaimer Rate**       | **0.0 %**                 | **0.0 %** (same source)                                                                                                                          |
-| **Completeness Rate**     | **100 %**                 | **100 %** (same source)                                                                                                                          |
-| **Source Attribution**    | **100 %**                 | **100 %** (same source)                                                                                                                          |
-| **Overall Quality Score** | **85 %**                  | **84 %** ([Reddit Community Analysis](https://www.reddit.com/r/LocalLLaMA/comments/1fps1cp/llama32_vs_llama31_in_medical_domain_llama31_70b/))   |
+| **Metrics**               | **MediGenius (Your Model)** | **LLaMA 3.1 70B**                                                                                                                                |
+| ------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Success Rate**          | **80–94 %**                 | **79–90 %** ([PLOS ONE](https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0325803))                                            |
+| **Average Response Time** | **7.23 seconds**            | **22.8 seconds** ([PMC Study](https://pmc.ncbi.nlm.nih.gov/articles/PMC12161878/))                                                               |
+| **Average Word Count**    | **76 words**                | **≈ 76 words** ([PMC Study](https://pmc.ncbi.nlm.nih.gov/articles/PMC12161878/))                                                                 |
+| **Medical Terms Usage**   | **80.0 %**                  | **80.0 %** ([Reddit Community Analysis](https://www.reddit.com/r/LocalLLaMA/comments/1fps1cp/llama32_vs_llama31_in_medical_domain_llama31_70b/)) |
+| **Disclaimer Rate**       | **0.0 %**                   | **0.0 %** (same source)                                                                                                                          |
+| **Completeness Rate**     | **100 %**                   | **100 %** (same source)                                                                                                                          |
+| **Source Attribution**    | **100 %**                   | **100 %** (same source)                                                                                                                          |
+| **Overall Quality Score** | **85 %**                    | **84 %** ([Reddit Community Analysis](https://www.reddit.com/r/LocalLLaMA/comments/1fps1cp/llama32_vs_llama31_in_medical_domain_llama31_70b/))   |
 
 ---
 
@@ -53,52 +54,52 @@ You can interact with the live AI-powered medical assistant here:
 
 ## 🚀 **Features**
 
-- 🤖 **Doctor-like medical assistant** with empathetic, patient-friendly communication
-- 🧠 **LLM-powered primary response** engine using ChatGroq (GPT-OSS-120B)
-- 📚 **RAG (Retrieval-Augmented Generation)** from indexed medical PDFs using PyPDFLoader + HuggingFace Embeddings + ChromaDB
-- 🗺️ **Planner Agent** for intelligent tool selection and decision-making
-- 🌐 **Wikipedia fallback** for general medical knowledge retrieval
-- 🔎 **DuckDuckGo fallback** for up-to-date or rare medical information
-- 🗂️ **Vector database (ChromaDB)** with persistent cosine-similarity search
-- 🧩 **Multi-agent orchestration** via LangGraph with Planner, Retriever, Executor, and Explanation agents
-- 💬 **(SQLite)Long Term Memory** for context-aware responses
-- 🔄 **Dynamic fallback chain** ensuring robust answers even in edge cases
-- 📜 **Conversation logging** for traceability and debugging
-- ⚡ **Production-ready modular design** for integration into healthcare chat systems
-- 🔒 **Rest API** for integration with other systems
-- 🐳 **Dockerized deployment** for consistent environment and easy scaling
-- 🌐 **Flask backend** with **custom HTML, CSS, and JavaScript** frontend for smooth UX
-- 🔁 **CI/CD pipeline integration** for automated testing and deployment
+* 🤖 **Doctor-like medical assistant** with empathetic, patient-friendly communication
+* 🧠 **LLM-powered primary response** engine using ChatGroq (GPT-OSS-120B)
+* 📚 **RAG (Retrieval-Augmented Generation)** from indexed medical PDFs using PyPDFLoader + HuggingFace Embeddings + ChromaDB
+* 🗺️ **Planner Agent** for intelligent tool selection and decision-making
+* 🌐 **Wikipedia fallback** for general medical knowledge retrieval
+* 🔎 **DuckDuckGo fallback** for up-to-date or rare medical information
+* 🗂️ **Vector database (ChromaDB)** with persistent cosine-similarity search
+* 🧩 **Multi-agent orchestration** via LangGraph with Planner, Retriever, Executor, and Explanation agents
+* 💬 **(SQLite)Long Term Memory** for context-aware responses
+* 🔄 **Dynamic fallback chain** ensuring robust answers even in edge cases
+* 📜 **Conversation logging** for traceability and debugging
+* ⚡ **Production-ready modular design** for integration into healthcare chat systems
+* 🔒 **Rest API** for integration with other systems
+* 🐳 **Dockerized deployment** for consistent environment and easy scaling
+* 🌐 **Flask backend** with **custom HTML, CSS, and JavaScript** frontend for smooth UX
+* 🔁 **CI/CD pipeline integration** for automated testing and deployment
 
 ---
 
 ## 🗂️ **Technical Stack**
 
-| **Category**                  | **Technology/Resource**                                                                                         |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Core Framework**            | LangChain, LangGraph                                                                                            |
+| **Category**               | **Technology/Resource**                                                                                   |
+|----------------------------|----------------------------------------------------------------------------------------------------------|
+| **Core Framework**         | LangChain, LangGraph                                                                                      |
 | **Multi-Agent Orchestration** | Planner Agent, LLM Agent, Retriever Agent, Wikipedia Agent, DuckDuckGo Agent, Executor Agent, Explanation Agent |
-| **LLM Provider**              | Groq (GPT-OSS-120B)                                                                                             |
-| **Embeddings Model**          | HuggingFace (sentence-transformers/all-MiniLM-L6-v2)                                                            |
-| **Vector Database**           | ChromaDB (cosine similarity search)                                                                             |
-| **Document Processing**       | PyPDFLoader (PDF), RecursiveCharacterTextSplitter                                                               |
-| **Search Tools**              | Wikipedia API, DuckDuckGo Search                                                                                |
-| **Conversation Flow**         | State Machine (LangGraph) with multi-stage fallback logic                                                       |
-| **Medical Knowledge Base**    | Domain-specific medical PDFs + Wikipedia medical content                                                        |
-| **Backend**                   | Flask (REST API + application logic)                                                                            |
-| **Frontend**                  | Custom HTML, CSS, JavaScript UI                                                                                 |
-| **Deployment**                | Docker (containerized), Local Development, Production-ready build                                               |
-| **CI/CD**                     | GitHub Actions (automated testing & deployment)                                                                 |
-| **Environment Management**    | python-dotenv (environment variables)                                                                           |
-| **Logging & Monitoring**      | Console + file logging with full traceback                                                                      |
-| **Hosting**                   | Render                                                                                                          |
+| **LLM Provider**           | Groq (GPT-OSS-120B)                                                                                       |
+| **Embeddings Model**       | HuggingFace (sentence-transformers/all-MiniLM-L6-v2)                                                     |
+| **Vector Database**        | ChromaDB (cosine similarity search)                                                                      |
+| **Document Processing**    | PyPDFLoader (PDF), RecursiveCharacterTextSplitter                                                        |
+| **Search Tools**           | Wikipedia API, DuckDuckGo Search                                                                          |
+| **Conversation Flow**      | State Machine (LangGraph) with multi-stage fallback logic                                                |
+| **Medical Knowledge Base** | Domain-specific medical PDFs + Wikipedia medical content                                                 |
+| **Backend**                | Flask (REST API + application logic)                                                                     |
+| **Frontend**               | Custom HTML, CSS, JavaScript UI                                                                           |
+| **Deployment**             | Docker (containerized), Local Development, Production-ready build                                        |
+| **CI/CD**                  | GitHub Actions (automated testing & deployment)                                                          |
+| **Environment Management** | python-dotenv (environment variables)                                                                    |
+| **Logging & Monitoring**   | Console + file logging with full traceback                                                               |
+| **Hosting**                | Render                                                                                                   |
 
 ---
 
 ## 🗂️ **Folder Structure**
 
 ```
-Caremate/
+MediGenius/
 ├── .github/
 │   └── workflows/
 │       └── main.yml
@@ -115,7 +116,7 @@ Caremate/
 │   └── wikipedia_agent.py
 │
 ├── biogpt-merged/         # Fine Tuning Model
-│
+│ 
 ├── core/
 │   ├── __init__.py
 │   ├── langgraph_workflow.py
@@ -128,7 +129,7 @@ Caremate/
 │   └── chroma.sqlite3
 │
 ├──── chat_db/
-│   └── Caremate_chats.db
+│   └── medigenius_chats.db
 │
 ├── notebook/
 │   ├── Experiments.ipynb
@@ -169,39 +170,6 @@ Caremate/
 ```
 
 ---
-
-## Internationalization / Multilingual support
-
-This project supports multilingual inputs and will attempt to respond in the same language as the user.
-
-Quick steps to enable and test multilingual behaviour locally:
-
-1. Install dependencies (ensure your virtualenv is active):
-
-```powershell
-python -m pip install -r requirements.txt
-```
-
-2. Recompute doctor embeddings using the multilingual embedder (this ensures doctor matching works across languages):
-
-```powershell
-python .\scripts\precompute_doctor_embeddings.py --force
-```
-
-3. Start the app and test with a non-English query (e.g., Spanish):
-
-```powershell
-python app.py
-# Then open the web UI and ask a question in Spanish, or call the /api/chat endpoint with a Spanish message
-```
-
-Implementation notes
-
-- The server uses `paraphrase-multilingual-MiniLM-L12-v2` for embeddings to improve cross-lingual matching.
-- Language detection uses `langdetect` and stores the detected language in the conversation state under `language`.
-- The LLMAgent checks `state['language']` and asks the LLM to answer in the detected language if it's not English.
-
-Recomputing doctor embeddings after changing the embedding model is important to keep semantic matches consistent.
 
 ## 🧱 **Project Architecture**
 
@@ -247,17 +215,14 @@ graph TD
 ## **API Endpoints**
 
 ## Base URL
-
 `http://localhost:8000`
 
 ## Endpoints
 
 ### POST /chat
-
 Process a medical question and return AI response
 
 **Request:**
-
 ```http
 POST /chat HTTP/1.1
 Content-Type: application/json
@@ -270,12 +235,10 @@ Host: localhost:8000
 ```
 
 **Parameters:**
-
 - `message` (required): The medical question to process
 - `conversation_id` (optional): Existing conversation ID for context
 
 **Response:**
-
 ```json
 {
   "response": "Diabetes symptoms include increased thirst, frequent urination...",
@@ -285,7 +248,6 @@ Host: localhost:8000
 ```
 
 **Status Codes:**
-
 - 200: Successful response
 - 400: Invalid request (missing message)
 - 500: Internal server error
@@ -293,7 +255,6 @@ Host: localhost:8000
 ## Example Usage
 
 ### Starting a new conversation:
-
 ```http
 POST /chat
 {
@@ -302,7 +263,6 @@ POST /chat
 ```
 
 Response:
-
 ```json
 {
   "response": "Migraines may be caused by genetic factors, environmental triggers...",
@@ -324,15 +284,14 @@ Response:
 
 ## 👨‍💻 **Developed By**
 
-**Sanket Yelugotla**  
-📧 **Email:** <sanketyelugotla123@gmail.com>  
-💬 **WhatsApp:** [+919550572255](https://wa.me/9550572255)  
-🔗 **GitHub:** [Sanket-yelugotla](https://github.com/sanketyelugotla)  
-🔗 **LinkedIn:** [Sanket Yelugotla](https://www.linkedin.com/in/sanketyelugotla/)  
-🔗 **Facebook:** [Sanket Yelugotla](https://www.facebook.com/sanketyelugotla/)
+**Md Emon Hasan**  
+📧 **Email:** iconicemon01@gmail.com  
+💬 **WhatsApp:** [+8801834363533](https://wa.me/8801834363533)  
+🔗 **GitHub:** [Md-Emon-Hasan](https://github.com/Md-Emon-Hasan)  
+🔗 **LinkedIn:** [Md Emon Hasan](https://www.linkedin.com/in/md-emon-hasan-695483237/)  
+🔗 **Facebook:** [Md Emon Hasan](https://www.facebook.com/mdemon.hasan2001/)
 
 ---
 
 ## 📌 License
-
 MIT License. Free to use with credit.

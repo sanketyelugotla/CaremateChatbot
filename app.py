@@ -1,10 +1,14 @@
-from flask import Flask, render_template, request, jsonify, session
 import os
+os.environ.setdefault("USE_TF", "0")  # Disable TensorFlow backend (corrupt install)
+
+from flask import Flask, render_template, request, jsonify, session
 import uuid
 import secrets
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 from pymongo import MongoClient
+
+from flask_cors import CORS
 
 from core.langgraph_workflow import create_workflow
 from core.state import initialize_conversation_state, reset_query_state
@@ -13,8 +17,6 @@ from tools.vector_store import get_or_create_vectorstore
 
 from sentence_transformers import SentenceTransformer
 import numpy as np
-from tools.specialization_utils import normalize_profile
-from tools.lang_utils import detect_language
 
 # --------------------------------------
 # Load environment variables
@@ -25,27 +27,12 @@ load_dotenv()
 # Flask app setup
 # --------------------------------------
 app = Flask(__name__)
-
-
-# Allow all origins (development). For production, restrict this to a safe list.
-# FRONTEND_URL can be configured via environment for different deployments
-# Example: export FRONTEND_URL=https://sanketyelugotla-caremate.vercel.app
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:3000')
-
-@app.after_request
-def add_cors_headers(response):
-    response.headers["Access-Control-Allow-Origin"] = FRONTEND_URL
-    response.headers["Access-Control-Allow-Credentials"] = "true"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS, PUT, DELETE"
-    return response
-# --------------------------------------
+CORS(app, supports_credentials=True)
 
 # Load local embedding model
-print("Loading multilingual embedding model... (this will take a few seconds the first time)")
-# multilingual model for better cross-lingual matching
-embedder = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
-print("Model loaded successfully")
+print("Loading local embedding model... (this will take a few seconds the first time)")
+embedder = SentenceTransformer("all-MiniLM-L6-v2")
+print("Model loaded successfully ✅")
 
 app.secret_key = secrets.token_hex(32)
 
@@ -53,10 +40,10 @@ app.secret_key = secrets.token_hex(32)
 # MongoDB setup
 # --------------------------------------
 MONGO_URI = os.getenv("MONGO_URI")
-client = None
-db = None
-sessions_collection = None
-messages_collection = None
+client = MongoClient(MONGO_URI)
+db = client["caremate"]
+sessions_collection = db["sessions"]
+messages_collection = db["messages"]
 
 # --------------------------------------
 # Global workflow and conversation state
@@ -74,260 +61,51 @@ def get_embedding(text):
     return np.array(embedder.encode(text, normalize_embeddings=True))
 
 
-def find_related_doctors(user_message, limit=3):
-    print("Started")
-    """Find doctors semantically related to user symptoms using local embeddings"""
-    doctors = list(db["users"].find({"role": "doctor"}))
-    print(doctors)
+def find_related_doctors(text_to_match, limit=3):
+    print("Started find_related_doctors")
+    """Find doctors semantically related to text using local embeddings"""
+    # Only find approved doctors
+    doctors = list(db["users"].find({"role": "doctor", "doctorProfile.isApproved": True}))
     if not doctors:
         return []
-    # Get user embedding and ensure it's a numpy array
-    user_emb = get_embedding(user_message)
-    if not isinstance(user_emb, np.ndarray):
-        user_emb = np.array(user_emb)
 
-    # Preprocess message for simple keyword matching
-    user_text_lc = (user_message or "").lower()
-
-    # Comprehensive Symptom -> specialization keywords mapping. This list is
-    # intentionally broad and should be tuned to your region and dataset.
-    SPECIALIZATION_KEYWORDS = {
-        "cardiologist": [
-            "chest pain", "shortness of breath", "palpitations", "heart attack", "angina", "tachycardia",
-            "high blood pressure", "hypertension", "palpitat"
-        ],
-        "pulmonologist": [
-            "cough", "shortness of breath", "wheeze", "wheezing", "bronchitis", "asthma", "tb", "tuberculosis",
-            "chronic obstructive", "copd", "pneumonia"
-        ],
-        "dermatologist": [
-            "rash", "itch", "itching", "redness", "eczema", "psoriasis", "skin", "acne", "blister", "hives"
-        ],
-        "ent": [
-            "ear", "hearing", "hearing loss", "ear pain", "tinnitus", "hoarseness", "sinus", "nasal", "throat",
-            "tonsillitis", "sinusitis"
-        ],
-        "neurologist": [
-            "headache", "seizure", "fits", "numbness", "weakness", "dizziness", "migraine", "stroke", "tremor"
-        ],
-        "pediatrician": [
-            "child", "kid", "baby", "fever in child", "pediatric", "infant", "newborn", "vaccination", "growth"
-        ],
-        "orthopedist": [
-            "joint pain", "back pain", "fracture", "sprain", "arthritis", "bone", "hip pain", "knee pain", "shoulder"
-        ],
-        "gastroenterologist": [
-            "abdominal pain", "diarrhea", "constipation", "vomiting", "nausea", "acid reflux", "heartburn", "ulcer"
-        ],
-        "endocrinologist": [
-            "diabetes", "thyroid", "weight gain", "weight loss", "hormone", "hypothyroid", "hyperthyroid"
-        ],
-        "psychiatrist": [
-            "depression", "anxiety", "insomnia", "mood", "psychosis", "therapy", "suicidal"
-        ],
-        "ophthalmologist": [
-            "eye", "vision", "blurry vision", "red eye", "cataract", "glaucoma", "ocular"
-        ],
-        "urologist": [
-            "urine", "urinary", "blood in urine", "dysuria", "kidney stone", "prostate", "frequency", "incontinence"
-        ],
-        "nephrologist": [
-            "kidney", "renal", "creatinine", "dialysis", "nephrotic", "proteinuria"
-        ],
-        "obgyn": [
-            "pregnancy", "period", "menstruation", "vaginal", "pelvic pain", "contraception", "gynecology", "obstetrics"
-        ],
-        "oncologist": [
-            "cancer", "chemotherapy", "tumor", "malignancy", "oncology", "mass"
-        ],
-        "infectious_disease": [
-            "fever", "infection", "sepsis", "antibiotic", "hiv", "tb", "covid", "viral"
-        ],
-        "rheumatologist": [
-            "joint pain", "autoimmune", "rheumatoid", "lupus", "scleroderma", "vasculitis"
-        ],
-        "allergist": [
-            "allergy", "allergic", "anaphylaxis", "hay fever", "rhinitis"
-        ],
-        "physiotherapist": [
-            "rehab", "physiotherapy", "mobility", "exercise therapy", "post-op rehab"
-        ],
-        "dentist": [
-            "toothache", "dental", "cavity", "gum", "oral", "tooth"
-        ],
-        "derm_cosmetic": [
-            "laser", "cosmetic", "fillers", "botox", "aesthetic"
-        ],
-    }
-
-    # Helper to return a list of canonical specializations for admin use
-    def get_specialization_list():
-        return sorted([(k.replace('_', ' ').title(), k) for k in SPECIALIZATION_KEYWORDS.keys()], key=lambda x: x[0])
-
-    # Canonicalization map for specialization names (common typos / variants)
-    CANONICAL_SPECIALIZATIONS = {
-        "pediadrist": "pediatrician",
-        "pediatrist": "pediatrician",
-        "pediatrician": "pediatrician",
-        "cardiologist": "cardiologist",
-        "cardiology": "cardiologist",
-        "ent": "ent",
-        "ear nose throat": "ent",
-        "neurology": "neurology",
-        "neuro": "neurology",
-        "dermatologist": "dermatologist",
-        "derm": "dermatologist",
-        "orthopedist": "orthopedist",
-        "orthopedic": "orthopedist",
-    }
-
-    # Detect which specializations are implied by the user's message
-    implied_specs = set()
-    for spec, keys in SPECIALIZATION_KEYWORDS.items():
-        for k in keys:
-            if k in user_text_lc:
-                # canonicalize implied spec if present
-                implied_specs.add(CANONICAL_SPECIALIZATIONS.get(spec, spec))
-                break
-
-    # First pass: canonicalize specializations and build available spec set
-    available_specs = set()
-    for doc in doctors:
-        profile = doc.get("doctorProfile", {})
-        raw_spec = (profile.get("specialization", "") or "").strip().lower()
-        canon_spec = CANONICAL_SPECIALIZATIONS.get(raw_spec, raw_spec) if raw_spec else ''
-        if canon_spec:
-            available_specs.add(canon_spec)
-        doc['_canonical_specialization'] = canon_spec
-
-    # If implied specialization exists but no doctors of that specialization are available,
-    # do NOT immediately return an empty list. Previously this prevented returning any
-    # recommendations for short follow-up replies (e.g. "4 days") when the earlier
-    # context implied a spec we don't have in the DB. Instead, continue and allow
-    # semantic matching to surface relevant doctors (with optional later filtering).
-    if implied_specs:
-        missing = [implied for implied in implied_specs if implied and implied not in available_specs]
-        if missing:
-            print(f"[debug] implied specializations not available in DB: {missing} — continuing semantic matching")
-
-    # Second pass: compute similarities and scores
+    text_emb = get_embedding(text_to_match)
     similarities = []
-    score_map = {}
+
     for doc in doctors:
         profile = doc.get("doctorProfile", {})
         specialization = profile.get("specialization", "")
-        qualifications = profile.get("qualifications", [])
+        qualifications = ", ".join(profile.get("qualifications", []))
         years_exp = profile.get("yearsExperience", "")
-
-        parts = []
-        if specialization:
-            parts.append(specialization)
-        if qualifications:
-            parts.append(" ".join(qualifications))
-        if years_exp:
-            parts.append(f"{years_exp} years experience")
-        bio = profile.get("bio", "") or doc.get("bio", "")
-        if bio:
-            parts.append(bio)
-        clinic = profile.get("clinic", "")
-        if clinic:
-            parts.append(clinic)
-        languages = profile.get("languages", [])
-        if languages:
-            parts.append(" ".join(languages))
-
-        doc_text = " ".join(parts).strip()
-        if not doc_text:
-            doc_text = f"{doc.get('name','')} {specialization}"
-
+        
+        doc_text = f"{specialization} {qualifications} {years_exp} years experience"
         doc_emb = doc.get("embedding")
+
+        # If embedding not present, create and save it
         if not doc_emb:
-            try:
-                # Normalize and persist canonical specialization (if changed)
-                profile = doc.get('doctorProfile', {}) or {}
-                normalized_profile = normalize_profile(profile)
-                if normalized_profile.get('specialization') and normalized_profile.get('specialization') != profile.get('specialization'):
-                    db["users"].update_one({"_id": doc["_id"]}, {"$set": {"doctorProfile.specialization": normalized_profile.get('specialization')}})
-
-                # Rebuild doc_text using normalized profile
-                doc_text = " ".join([p for p in [
-                    normalized_profile.get('specialization',''),
-                    " ".join(normalized_profile.get('qualifications', [])) if normalized_profile.get('qualifications') else '',
-                    f"{normalized_profile.get('yearsExperience','')} years experience" if normalized_profile.get('yearsExperience') else '',
-                    normalized_profile.get('bio','') or doc.get('bio',''),
-                    normalized_profile.get('clinic',''),
-                    " ".join(normalized_profile.get('languages', [])) if normalized_profile.get('languages') else ''
-                ] if p]).strip()
-
-                computed = get_embedding(doc_text)
-                db["users"].update_one({"_id": doc["_id"]}, {"$set": {"embedding": computed.tolist()}})
-                doc_emb = np.array(computed)
-            except Exception as e:
-                print(f"Error computing embedding for doctor {doc.get('name')}: {e}")
-                continue
+            doc_emb = get_embedding(doc_text)
+            db["users"].update_one(
+                {"_id": doc["_id"]},
+                {"$set": {"embedding": doc_emb.tolist()}}
+            )
         else:
-            doc_emb = np.array(doc_emb, dtype=float)
+            doc_emb = np.array(doc_emb)
 
-        # Ensure no-zero norm
-        user_norm = np.linalg.norm(user_emb)
-        doc_norm = np.linalg.norm(doc_emb)
-        if user_norm == 0 or doc_norm == 0:
-            continue
+        similarity = np.dot(text_emb, doc_emb)
+        if similarity >= 0.15:
+            similarities.append((doc, similarity))
 
-        similarity = float(np.dot(user_emb, doc_emb) / (user_norm * doc_norm))
-
-        # Boosting logic
-        boost = 0.0
-        spec_lc = (doc.get('_canonical_specialization') or specialization or "").lower()
-        for implied in implied_specs:
-            if implied and (implied in spec_lc or spec_lc in implied):
-                boost += 0.35
-        if specialization and specialization.lower() in user_text_lc:
-            boost += 0.12
-        for qual in qualifications:
-            if qual and qual.lower() in user_text_lc:
-                boost += 0.05
-
-        score = similarity + boost
-        similarities.append((doc, score))
-        score_map[doc.get('_id')] = score
-
-    # Return top matches above a reasonable similarity threshold
     similarities.sort(key=lambda x: x[1], reverse=True)
+    top_matches = [d[0] for d in similarities[:limit]]
 
-    # Filter out low-similarity matches (threshold can be tuned)
-    SIMILARITY_THRESHOLD = 0.15
-    filtered = [d for d in similarities if d[1] >= SIMILARITY_THRESHOLD]
-
-    top_matches = [d[0] for d in filtered[:limit]]
-
-    # Previously we returned an empty list when an implied specialization had no
-    # matching doctors in the DB. That behavior caused follow-up messages with
-    # little content to produce no recommendations. Keep results (possibly empty)
-    # based on similarity filtering above; do not force an early empty return here.
-
-    results = []
-    for d in top_matches:
-        doc_id = d.get('_id')
-        score = score_map.get(doc_id)
-        if score is None:
-            # fallback: search in similarities list
-            score = next((s for (dd, s) in similarities if dd.get('_id') == doc_id), None)
-        try:
-            score = round(float(score), 4) if score is not None else None
-        except Exception:
-            score = None
-
-        results.append({
-            "name": d.get("name", ""),
-            "email": d.get("email", ""),
-            "specialization": d.get("doctorProfile", {}).get("specialization", ""),
-            "yearsExperience": d.get("doctorProfile", {}).get("yearsExperience", ""),
-            "qualifications": d.get("doctorProfile", {}).get("qualifications", []),
-            "score": score
-        })
-
-    return results
+    return [{
+        "_id": str(d.get("_id", "")),
+        "name": d.get("name", ""),
+        "email": d.get("email", ""),
+        "specialization": d.get("doctorProfile", {}).get("specialization", ""),
+        "yearsExperience": d.get("doctorProfile", {}).get("yearsExperience", ""),
+        "qualifications": d.get("doctorProfile", {}).get("qualifications", []),
+    } for d in top_matches]
 
 
 # --------------------------------------
@@ -336,9 +114,6 @@ def find_related_doctors(user_message, limit=3):
 
 def save_message(session_id, role, content, source=None):
     """Save user or assistant message to MongoDB"""
-    if messages_collection is None or sessions_collection is None:
-        # No DB configured; skip persistence
-        return
     messages_collection.insert_one({
         "session_id": session_id,
         "role": role,
@@ -359,8 +134,6 @@ def save_message(session_id, role, content, source=None):
 
 def get_chat_history(session_id):
     """Retrieve ordered chat messages for a session"""
-    if messages_collection is None:
-        return []
     messages = list(messages_collection.find(
         {"session_id": session_id},
         {"_id": 0}
@@ -369,19 +142,22 @@ def get_chat_history(session_id):
 
 
 def get_all_sessions():
-    """Fetch all sessions with preview"""
-    if sessions_collection is None or messages_collection is None:
-        return []
+    """Fetch all sessions with preview based on user's first message"""
     sessions = []
     for s in sessions_collection.find().sort("last_active", -1):
+        # Use the user's first message as the session title — it describes their symptoms
         first_user_msg = messages_collection.find_one(
             {"session_id": s["session_id"], "role": "user"},
             sort=[("timestamp", 1)]
         )
         preview = None
         if first_user_msg and first_user_msg.get("content"):
-            content = first_user_msg["content"]
-            preview = content[:50] + "..." if len(content) > 50 else content
+            content = first_user_msg["content"].strip()
+            # Capitalize first letter and truncate neatly
+            content = content[0].upper() + content[1:] if content else content
+            preview = content[:55] + "..." if len(content) > 55 else content
+        else:
+            preview = "New AI Session"
 
         sessions.append({
             "session_id": s["session_id"],
@@ -394,32 +170,20 @@ def get_all_sessions():
 
 def delete_session(session_id):
     """Delete all messages + session document"""
-    if messages_collection is None or sessions_collection is None:
-        return
     messages_collection.delete_many({"session_id": session_id})
     sessions_collection.delete_one({"session_id": session_id})
 
 
 # --------------------------------------
-# Caremate Initialization
+# MediGenius Initialization
 # --------------------------------------
 def initialize_system():
     global workflow_app
-    global client, db, sessions_collection, messages_collection
 
     pdf_path = './data/medical_book.pdf'
     persist_dir = './medical_db/'
 
-    print("Initializing Caremate System...")
-    def _write_init_status(s):
-        try:
-            with open('./init_status.txt', 'w', encoding='utf-8') as f:
-                f.write(s)
-        except Exception:
-            # best-effort; do not fail initialization if status file can't be written
-            pass
-
-    _write_init_status('starting')
+    print("Initializing MediGenius System...")
 
     # Initialize vector DB
     existing_db = get_or_create_vectorstore(persist_dir=persist_dir)
@@ -430,39 +194,9 @@ def initialize_system():
         get_or_create_vectorstore(documents=doc_splits, persist_dir=persist_dir)
     elif not existing_db:
         print("No vector database and no PDF found — RAG features will be limited")
-    else:
-        print("Vector DB available")
-    _write_init_status('vector_db_done')
 
     workflow_app = create_workflow()
-    print("Caremate Web Interface Ready!")
-    _write_init_status('workflow_ready')
-
-    # Lazily initialize MongoDB client so Docker startup doesn't fail when
-    # network/DNS to Atlas isn't available. This keeps the app usable in
-    # limited functionality mode (no persistence).
-    try:
-        if MONGO_URI:
-            client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-            client.admin.command('ping')
-            db = client["caremate"]
-            sessions_collection = db["sessions"]
-            messages_collection = db["messages"]
-            print("MongoDB connected successfully")
-            _write_init_status('mongo_connected')
-        else:
-            print("MONGO_URI not set; running without DB persistence")
-            _write_init_status('mongo_not_configured')
-    except Exception as e:
-        print(f"Warning: MongoDB connection failed during initialize_system: {e}")
-        client = None
-        db = None
-        sessions_collection = None
-        messages_collection = None
-        _write_init_status('mongo_failed')
-
-    # Final ready
-    _write_init_status('ready')
+    print("MediGenius Web Interface Ready!")
 
 
 # --------------------------------------
@@ -493,10 +227,6 @@ def chat():
     # Save user message
     save_message(session_id, 'user', message)
 
-    # Detect user language and store in conversation state so downstream
-    # agents/LLM can respond in the same language.
-    user_lang = detect_language(message)
-
     # Fetch last 5 messages (for context)
     previous_messages = list(messages_collection.find(
         {"session_id": session_id}
@@ -516,9 +246,6 @@ def chat():
     conversation_state = conversation_states[session_id]
     conversation_state = reset_query_state(conversation_state)
 
-    # attach detected language
-    conversation_state['language'] = user_lang
-
     # Add both context and question
     conversation_state["context"] = context.strip()
     conversation_state["question"] = message
@@ -527,21 +254,12 @@ def chat():
     result = workflow_app.invoke(conversation_state)
     conversation_states[session_id].update(result)
 
-    # Build a combined text from recent context + current message so that
-    # short replies (e.g., "4 days") are matched against earlier symptom
-    # mentions in the conversation. This improves doctor suggestion recall.
-    combined_text = (context or '').strip()
-    if combined_text and message:
-        combined_query = f"{combined_text} {message}"
-    else:
-        combined_query = message or combined_text
-
-    related_doctors = find_related_doctors(combined_query)
-    print(f"[debug] related_doctors found: {len(related_doctors)} for query='{combined_query[:120]}'")
-
     # Extract response and source
     response = result.get('generation', 'Unable to generate response.')
     source = result.get('source', 'Unknown')
+    
+    # Use context + response to get accurate doctor recommendations
+    related_doctors = find_related_doctors(f"{context}\nUser: {message}\nAssistant: {response}")
 
     # Save assistant response
     save_message(session_id, 'assistant', response, source)
@@ -619,91 +337,7 @@ def new_chat():
 
 @app.route('/api/health')
 def health():
-    return jsonify({'status': 'healthy', 'service': 'CareMate'})
-
-
-# ----- Admin: create or update doctor (canonicalize before write) -----
-@app.route('/api/admin/doctor', methods=['POST'])
-def upsert_doctor():
-    """Create or update a doctor record. This endpoint will canonicalize
-    the provided `doctorProfile` using `normalize_profile` before persisting.
-
-    Expected JSON body:
-      {
-        "name": "Dr. Alice",
-        "email": "alice@example.com",
-        "doctorProfile": { ... }
-      }
-
-    If a doctor with the same email exists, it will be updated (upsert).
-    For safety this endpoint is intended for admin use only; add auth in
-    front of it for production.
-    """
-    data = request.json or {}
-    email = (data.get('email') or '').strip()
-    name = data.get('name') or data.get('displayName') or ''
-    raw_profile = data.get('doctorProfile') or {}
-
-    if not email:
-        return jsonify({'error': 'email is required', 'success': False}), 400
-
-    # Canonicalize/normalize the profile
-    try:
-        normalized = normalize_profile(raw_profile or {})
-    except Exception as e:
-        return jsonify({'error': f'failed to normalize profile: {e}', 'success': False}), 500
-
-    # Build document to upsert
-    doc = {
-        'name': name,
-        'email': email,
-        'role': 'doctor',
-        'doctorProfile': normalized,
-    }
-
-    # Optional top-level bio field
-    if normalized.get('bio'):
-        doc['bio'] = normalized.get('bio')
-
-    try:
-        result = db['users'].update_one({'email': email}, {'$set': doc}, upsert=True)
-    except Exception as e:
-        return jsonify({'error': f'database upsert failed: {e}', 'success': False}), 500
-
-    # Compute and persist embedding for the doctor text (best-effort)
-    try:
-        # Build text used for embedding (same logic as find_related_doctors)
-        parts = [
-            normalized.get('specialization',''),
-            ' '.join(normalized.get('qualifications', [])) if normalized.get('qualifications') else '',
-            f"{normalized.get('yearsExperience','')} years experience" if normalized.get('yearsExperience') else '',
-            normalized.get('bio',''),
-            normalized.get('clinic',''),
-            ' '.join(normalized.get('languages', [])) if normalized.get('languages') else ''
-        ]
-        doc_text = ' '.join([p for p in parts if p]).strip()
-        if not doc_text:
-            doc_text = name or email
-
-        emb = get_embedding(doc_text)
-        # store as plain list so other scripts can read
-        db['users'].update_one({'email': email}, {'$set': {'embedding': emb.tolist()}})
-    except Exception as e:
-        # Do not fail the whole request because embedding failed; return warning
-        return jsonify({
-            'message': 'doctor upserted, but embedding failed',
-            'email': email,
-            'upserted': bool(result.upserted_id or result.matched_count),
-            'warning': str(e),
-            'success': True
-        }), 200
-
-    return jsonify({
-        'message': 'doctor upserted',
-        'email': email,
-        'upserted': bool(result.upserted_id or result.matched_count),
-        'success': True
-    })
+    return jsonify({'status': 'healthy', 'service': 'MediGenius'})
 
 
 # --------------------------------------
@@ -711,11 +345,4 @@ def upsert_doctor():
 # --------------------------------------
 if __name__ == '__main__':
     initialize_system()
-
-    try:
-        port = int(os.getenv('PORT', '8000'))
-    except Exception:
-        port = 8000
-
-    print(f"Starting Caremate on 0.0.0.0:{port}")
-    app.run(host='0.0.0.0', port=port) 
+    app.run(debug=True, port=8000)

@@ -8,18 +8,10 @@ WORKDIR /app
 COPY . /app
 
 # Install the dependencies
-RUN pip install --no-cache-dir -r requirements.txt gunicorn
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose and set the default port (Render will override PORT env variable)
-ENV PORT=8000
-EXPOSE 8000
+# Expose the port Flask runs on
+EXPOSE 5000
 
-# Copy a small start script and make it executable
-COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
-
-# Healthcheck for readiness
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s CMD curl -f http://localhost:${PORT:-8000}/api/health || exit 1
-
-# Command to run the Flask app via the start script (uses shell so $PORT expands)
-CMD ["/bin/sh", "/app/start.sh"]
+# Command to run the Flask app
+CMD ["python", "app.py"]
